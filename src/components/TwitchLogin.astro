@@ -33,7 +33,7 @@ import { Icon } from "astro-icon/components";
       return;
     }
 
-    const redirectUri = `${window.location.origin}/`;
+    const redirectUri = `${window.location.origin}`;
     const state = crypto.randomUUID();
     sessionStorage.setItem("twitch_state", state);
 
