@@ -1,0 +1,66 @@
+---
+import Head from "../components/Head.astro";
+import Layout from "../layouts/Layout.astro";
+import TwitchLogin from "../components/TwitchLogin.astro";
+import AccessTokenCopy from "../components/AccessTokenCopy.astro";
+---
+
+<html lang="en">
+  <Head />
+  <body>
+    <Layout>
+      <div
+        class="flex flex-col gap-4 min-h-screen items-center justify-center font-sans"
+      >
+        <div class="flex flex-col gap-1 items-center select-none">
+          <h1 class="text-4xl font-bold">osu! twitchbot</h1>
+          <p class="text-md font-medium text-text">token retriever</p>
+        </div>
+
+        <div id="login-section">
+          <TwitchLogin />
+        </div>
+
+        <div id="token-section" class="hidden">
+          <AccessTokenCopy />
+        </div>
+      </div>
+    </Layout>
+  </body>
+</html>
+
+<script>
+  function initTokenFromHash() {
+    const fragment = window.location.hash.substring(1);
+    if (!fragment) return;
+
+    const params = new URLSearchParams(fragment);
+    const accessTokenParam = params.get("access_token");
+    const scope = params.get("scope");
+    const state = params.get("state");
+    const tokenType = params.get("token_type");
+
+    if (accessTokenParam && scope && state && tokenType) {
+      const storedState = sessionStorage.getItem("twitch_state");
+      if (state === storedState) {
+        sessionStorage.removeItem("twitch_state");
+
+        const loginSection = document.getElementById("login-section");
+        const tokenSection = document.getElementById("token-section");
+        const input = tokenSection?.querySelector("#access-token-input");
+
+        if (input instanceof HTMLInputElement) {
+          input.value = accessTokenParam;
+          loginSection?.classList.add("hidden");
+          tokenSection?.classList.remove("hidden");
+        }
+
+        window.history.replaceState(null, "", window.location.pathname);
+      } else {
+        console.error("State mismatch — possible CSRF attempt");
+      }
+    }
+  }
+
+  initTokenFromHash();
+</script>

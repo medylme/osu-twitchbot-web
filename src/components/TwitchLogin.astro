@@ -1,0 +1,62 @@
+---
+import { Icon } from "astro-icon/components";
+---
+
+<button
+  id="twitch-login"
+  class="bg-[#cba6f7] text-black px-4 py-2 rounded-full font-medium hover:bg-[#a285c5] transition-colors duration-200 select-none flex gap-2 items-center cursor-pointer"
+>
+  <Icon name="TwitchLogo" />
+  Login with Twitch
+</button>
+
+<script>
+  interface TwitchAuthQueryParams {
+    client_id: string;
+    force_verify: boolean;
+    redirect_uri: string;
+    response_type: string;
+    scope: string;
+    state: string;
+  }
+
+  function slugify(params: TwitchAuthQueryParams) {
+    return Object.entries(params)
+      .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+      .join("&");
+  }
+
+  function handleLogin() {
+    const clientId = import.meta.env.PUBLIC_TWITCH_CLIENT_ID;
+    if (!clientId) {
+      alert("Missing PUBLIC_TWITCH_CLIENT_ID in .env");
+      return;
+    }
+
+    const redirectUri = `${window.location.origin}/`;
+    const state = crypto.randomUUID();
+    sessionStorage.setItem("twitch_state", state);
+
+    const queryParams: TwitchAuthQueryParams = {
+      client_id: clientId,
+      force_verify: false,
+      redirect_uri: redirectUri,
+      response_type: "token",
+      scope: "channel:bot user:read:chat user:write:chat",
+      state: state,
+    };
+
+    window.location.href = `https://id.twitch.tv/oauth2/authorize?${slugify(queryParams)}`;
+  }
+
+  function init() {
+    const btn = document.getElementById("twitch-login");
+    btn?.addEventListener("click", handleLogin);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+</script>

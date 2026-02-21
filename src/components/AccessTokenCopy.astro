@@ -1,0 +1,128 @@
+---
+import { Icon } from "astro-icon/components";
+---
+
+<style>
+  #toggle-visibility-btn [data-icon="MdEyeOff"] {
+    display: none;
+  }
+  #toggle-visibility-btn[data-visible="true"] [data-icon="MdEye"] {
+    display: none;
+  }
+  #toggle-visibility-btn[data-visible="true"] [data-icon="MdEyeOff"] {
+    display: block;
+  }
+  [data-icon] {
+    font-size: 1.25rem;
+    color: var(--brand-color);
+  }
+</style>
+
+<div
+  class="access-token-copy flex flex-col gap-2 items-center w-full justify-center"
+>
+  <p class="text-sm text-[#f38ba8]">Do not share this with anyone!</p>
+
+  <div
+    class="flex flex-col gap-2 items-center w-full justify-center sm:flex-row"
+  >
+    <input
+      id="access-token-input"
+      type="password"
+      readonly
+      class="flex bg-[#45475a] text-foreground px-3 py-2 rounded-full border border-gray-600 font-mono text-base items-center min-w-74 text-center"
+    />
+
+    <div class="flex gap-2 items-center w-full justify-center">
+      <button
+        id="copy-token-btn"
+        type="button"
+        class="bg-[#cba6f7] text-black px-4 py-2 rounded-full font-medium hover:bg-[#a285c5] transition-colors duration-200 cursor-pointer"
+        title="Copy token"
+      >
+        <Icon name="MdCopy" />
+        <span class="sr-only">Copy token</span>
+      </button>
+
+      <button
+        id="toggle-visibility-btn"
+        type="button"
+        data-visible="false"
+        class="bg-[#f38ba8] text-black px-4 py-2 rounded-full font-medium hover:bg-[#c7738b] transition-colors duration-200 cursor-pointer"
+        title="Show token"
+        aria-label="Show token"
+      >
+        <Icon name="MdEye" />
+        <Icon name="MdEyeOff" />
+      </button>
+    </div>
+  </div>
+
+  <button
+    id="reset-btn"
+    type="button"
+    class="bg-[#cba6f7] text-black px-4 py-2 rounded-full font-medium hover:bg-[#a285c5] transition-colors duration-200 cursor-pointer sm:mt-2"
+  >
+    Reset
+  </button>
+</div>
+
+<script>
+  import confetti from "canvas-confetti";
+
+  const input = document.getElementById(
+    "access-token-input",
+  ) as HTMLInputElement | null;
+  const copyBtn = document.getElementById("copy-token-btn");
+  const toggleBtn = document.getElementById("toggle-visibility-btn");
+  const resetBtn = document.getElementById("reset-btn");
+
+  const colors = [
+    "#969eff",
+    "#7f88ff",
+    "#b3b8ff",
+    "#e6e6e6",
+    "#bdbdbd",
+    "#7a7a7a",
+    "#2f2f2f",
+  ];
+
+  function fireConfettiAtCursor(e: MouseEvent) {
+    const x = e.clientX / window.innerWidth;
+    const y = e.clientY / window.innerHeight;
+    confetti({
+      particleCount: 90,
+      spread: 70,
+      startVelocity: 28,
+      scalar: 0.9,
+      origin: { x, y },
+      colors,
+    });
+    confetti({
+      particleCount: 40,
+      spread: 110,
+      startVelocity: 18,
+      scalar: 0.75,
+      origin: { x, y },
+      colors,
+    });
+  }
+
+  async function handleCopy(e: MouseEvent) {
+    if (!input?.value) return;
+    await navigator.clipboard.writeText(input.value);
+    fireConfettiAtCursor(e);
+  }
+
+  toggleBtn?.addEventListener("click", () => {
+    const isVisible = toggleBtn.dataset.visible === "true";
+    const next = !isVisible;
+    toggleBtn.dataset.visible = String(next);
+    toggleBtn.setAttribute("aria-label", next ? "Hide token" : "Show token");
+    toggleBtn.setAttribute("title", next ? "Hide token" : "Show token");
+    if (input) input.type = next ? "text" : "password";
+  });
+
+  copyBtn?.addEventListener("click", (e) => handleCopy(e as MouseEvent));
+  resetBtn?.addEventListener("click", () => window.location.reload());
+</script>
